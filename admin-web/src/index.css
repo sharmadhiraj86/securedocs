@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-color: #0f172a;
+  --text-color: #f8fafc;
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --card-bg: #1e293b;
+  --border-color: #334155;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.ql-toolbar.ql-snow {
+  background-color: #cbd5e1;
+  border-radius: 8px 8px 0 0;
+  border: none !important;
+}
+
+.ql-container.ql-snow {
+  background-color: white;
+  color: black;
+  border-radius: 0 0 8px 8px;
+  min-height: 60vh;
+  font-size: 16px;
+  border: none !important;
+}
+
+.ql-editor {
+  min-height: 60vh;
+}

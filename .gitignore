@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+admin-web/dist/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Database files
+documents.db
+*.db
+
+# Large binary/installer files - DO NOT COMMIT
+desktop-viewer/build16/
+desktop-viewer/build16-mac-arm64/
+desktop-viewer/installer/
+admin-web/public/downloads/
+server/public/downloads/
+*.exe
+*.zip
+*.nupkg
+*.dmg
+*.AppImage
+
+# OS files
+.DS_Store
+Thumbs.db
