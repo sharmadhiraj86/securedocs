@@ -14,7 +14,7 @@ export default function Editor() {
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
   const quillRef = useRef(null);
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const API_URL = import.meta.env.VITE_API_URL || '';
 
   useEffect(() => {
     // Fetch document
@@ -27,8 +27,9 @@ export default function Editor() {
         }
       });
 
-    // Connect socket
-    const newSocket = io(API_URL);
+    // Connect socket - use current origin in production
+    const socketUrl = import.meta.env.VITE_API_URL || window.location.origin;
+    const newSocket = io(socketUrl);
     setSocket(newSocket);
     
     newSocket.on('connect', () => {

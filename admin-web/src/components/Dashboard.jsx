@@ -6,7 +6,7 @@ function Login({ setAuthenticated }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const API_URL = import.meta.env.VITE_API_URL || '';
 
   const handleLogin = async () => {
     setError('');
@@ -69,7 +69,7 @@ export default function Dashboard() {
   const [documents, setDocuments] = useState([]);
   const [copiedId, setCopiedId] = useState(null);
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const API_URL = import.meta.env.VITE_API_URL || '';
 
   const fetchDocuments = async () => {
     try {
