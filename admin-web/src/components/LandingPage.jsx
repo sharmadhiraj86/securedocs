@@ -40,13 +40,13 @@ export default function LandingPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
           <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="https://drive.google.com/file/d/1ZUT39NDDFbBWRNl7u6KHbBhuXJAh-f9l/view?usp=drive_link" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+            <a href="https://drive.google.com/uc?export=download&id=1ZUT39NDDFbBWRNl7u6KHbBhuXJAh-f9l" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
               <button style={{ padding: '15px 40px', borderRadius: '30px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', border: 'none', color: 'white', fontSize: '1.1rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 10px 30px rgba(59, 130, 246, 0.4)', transition: 'transform 0.2s' }}>
                 <Download size={22} />
                 Download for Windows (.exe)
               </button>
             </a>
-            <a href="https://drive.google.com/file/d/1_57n6-8wyUXgoapvIkP6ejsvRJUR1t0J/view?usp=drive_link" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+            <a href="https://drive.google.com/uc?export=download&id=1_57n6-8wyUXgoapvIkP6ejsvRJUR1t0J" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
               <button 
                 style={{ padding: '15px 40px', borderRadius: '30px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontSize: '1.1rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', backdropFilter: 'blur(10px)', transition: 'all 0.3s' }}
                 onMouseOver={(e) => {
