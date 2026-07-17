@@ -27,7 +27,9 @@ const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
-    if (Object.values(ACCOUNTS).includes(token)) {
+    const email = Object.keys(ACCOUNTS).find(k => ACCOUNTS[k] === token);
+    if (email) {
+      req.userEmail = email;
       return next();
     }
   }
@@ -44,6 +46,12 @@ app.post('/api/login', (req, res) => {
   }
 });
 
+// Helper to verify user ownership of documents
+const hasAccess = (docOwner, userEmail) => {
+  const defaultAdmin = process.env.ADMIN_EMAIL || 'dhiraj86@gmail.com';
+  return docOwner ? docOwner === userEmail : userEmail === defaultAdmin;
+};
+
 // Dual Database Adapter (Cloud MongoDB vs Local SQLite)
 let dbAdapter = {};
 
@@ -51,26 +59,34 @@ if (process.env.MONGODB_URI) {
   const mongoose = require('mongoose');
   mongoose.connect(process.env.MONGODB_URI).then(() => console.log('Connected to Cloud MongoDB'));
   
-  const docSchema = new mongoose.Schema({ id: String, title: String, content: String });
+  const docSchema = new mongoose.Schema({ id: String, title: String, content: String, owner: String });
   const Document = mongoose.model('Document', docSchema);
   
   dbAdapter = {
-    create: async (id, title, content) => await Document.create({ id, title, content }),
+    create: async (id, title, content, owner) => await Document.create({ id, title, content, owner }),
     get: async (id) => await Document.findOne({ id }),
     updateTitle: async (id, title) => await Document.updateOne({ id }, { title }),
     updateContent: async (id, content) => await Document.updateOne({ id }, { content }),
-    list: async () => await Document.find({}, 'id title').sort({ _id: -1 }),
+    list: async (owner) => {
+      const query = {
+        $or: [
+          { owner },
+          ...(owner === (process.env.ADMIN_EMAIL || 'dhiraj86@gmail.com') ? [{ owner: null }, { owner: { $exists: false } }] : [])
+        ]
+      };
+      return await Document.find(query, 'id title').sort({ _id: -1 });
+    },
     delete: async (id) => await Document.deleteOne({ id })
   };
 } else {
   const db = require('./db');
   console.log('Using Local SQLite Database');
   dbAdapter = {
-    create: (id, title, content) => new Promise((res, rej) => db.run('INSERT INTO documents (id, title, content) VALUES (?, ?, ?)', [id, title, content], err => err ? rej(err) : res())),
+    create: (id, title, content, owner) => new Promise((res, rej) => db.run('INSERT INTO documents (id, title, content, owner) VALUES (?, ?, ?, ?)', [id, title, content, owner], err => err ? rej(err) : res())),
     get: (id) => new Promise((res, rej) => db.get('SELECT * FROM documents WHERE id = ?', [id], (err, row) => err ? rej(err) : res(row))),
     updateTitle: (id, title) => new Promise((res, rej) => db.run('UPDATE documents SET title = ? WHERE id = ?', [title, id], err => err ? rej(err) : res())),
     updateContent: (id, content) => new Promise((res, rej) => db.run('UPDATE documents SET content = ? WHERE id = ?', [content, id], err => err ? rej(err) : res())),
-    list: () => new Promise((res, rej) => db.all('SELECT id, title FROM documents ORDER BY rowid DESC', [], (err, rows) => err ? rej(err) : res(rows))),
+    list: (owner) => new Promise((res, rej) => db.all('SELECT id, title FROM documents WHERE owner = ? OR (owner IS NULL AND ? = ?) ORDER BY rowid DESC', [owner, owner, process.env.ADMIN_EMAIL || 'dhiraj86@gmail.com'], (err, rows) => err ? rej(err) : res(rows))),
     delete: (id) => new Promise((res, rej) => db.run('DELETE FROM documents WHERE id = ?', [id], err => err ? rej(err) : res()))
   };
 }
@@ -80,13 +96,18 @@ app.post('/api/documents', authMiddleware, async (req, res) => {
   const id = Math.random().toString(36).substring(2, 10);
   const title = req.body.title || 'Untitled Document';
   try {
-    await dbAdapter.create(id, title, '');
+    await dbAdapter.create(id, title, '', req.userEmail);
     res.json({ id, title, content: '' });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/documents/:id', authMiddleware, async (req, res) => {
   try {
+    const doc = await dbAdapter.get(req.params.id);
+    if (!doc) return res.status(404).json({ error: 'Document not found' });
+    if (!hasAccess(doc.owner, req.userEmail)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     await dbAdapter.updateTitle(req.params.id, req.body.title);
     res.json({ id: req.params.id, title: req.body.title });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -94,13 +115,18 @@ app.put('/api/documents/:id', authMiddleware, async (req, res) => {
 
 app.get('/api/documents', authMiddleware, async (req, res) => {
   try {
-    const list = await dbAdapter.list();
+    const list = await dbAdapter.list(req.userEmail);
     res.json(list);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.delete('/api/documents/:id', authMiddleware, async (req, res) => {
   try {
+    const doc = await dbAdapter.get(req.params.id);
+    if (!doc) return res.status(404).json({ error: 'Document not found' });
+    if (!hasAccess(doc.owner, req.userEmail)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     await dbAdapter.delete(req.params.id);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -122,8 +148,12 @@ app.use((req, res) => {
 io.on('connection', (socket) => {
   socket.on('join-document', (id) => socket.join(id));
   socket.on('edit-document', async ({ documentId, content, password }) => {
-    if (!Object.values(ACCOUNTS).includes(password)) return;
+    const email = Object.keys(ACCOUNTS).find(k => ACCOUNTS[k] === password);
+    if (!email) return;
     try {
+      const doc = await dbAdapter.get(documentId);
+      if (!doc) return;
+      if (!hasAccess(doc.owner, email)) return;
       await dbAdapter.updateContent(documentId, content);
       socket.to(documentId).emit('document-updated', { content });
     } catch (err) { console.error(err); }

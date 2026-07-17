@@ -10,9 +10,13 @@ db.serialize(() => {
       id TEXT PRIMARY KEY,
       title TEXT,
       content TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      owner TEXT
     )
   `);
+  db.run(`ALTER TABLE documents ADD COLUMN owner TEXT`, (err) => {
+    // Ignore error if column already exists
+  });
 });
 
 module.exports = db;
