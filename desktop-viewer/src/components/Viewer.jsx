@@ -54,7 +54,8 @@ export default function Viewer() {
       setDocument(prev => ({
         ...prev,
         content: data.content !== undefined ? data.content : prev.content,
-        title: data.title !== undefined ? data.title : prev.title
+        title: data.title !== undefined ? data.title : prev.title,
+        fontSize: data.fontSize !== undefined ? data.fontSize : prev.fontSize
       }));
     });
 
@@ -121,7 +122,7 @@ export default function Viewer() {
           minHeight: 0, 
           boxSizing: 'border-box',
           lineHeight: '1.6',
-          fontSize: '18px'
+          fontSize: `${document?.fontSize || 18}px`
         }}
         dangerouslySetInnerHTML={{ __html: preprocessHtml(document.content) }}
       />

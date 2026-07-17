@@ -59,14 +59,21 @@ if (process.env.MONGODB_URI) {
   const mongoose = require('mongoose');
   mongoose.connect(process.env.MONGODB_URI).then(() => console.log('Connected to Cloud MongoDB'));
   
-  const docSchema = new mongoose.Schema({ id: String, title: String, content: String, owner: String });
+  const docSchema = new mongoose.Schema({ 
+    id: String, 
+    title: String, 
+    content: String, 
+    owner: String, 
+    fontSize: { type: Number, default: 18 } 
+  });
   const Document = mongoose.model('Document', docSchema);
   
   dbAdapter = {
-    create: async (id, title, content, owner) => await Document.create({ id, title, content, owner }),
+    create: async (id, title, content, owner) => await Document.create({ id, title, content, owner, fontSize: 18 }),
     get: async (id) => await Document.findOne({ id }),
     updateTitle: async (id, title) => await Document.updateOne({ id }, { title }),
     updateContent: async (id, content) => await Document.updateOne({ id }, { content }),
+    updateFontSize: async (id, fontSize) => await Document.updateOne({ id }, { fontSize }),
     list: async (owner) => {
       const query = {
         $or: [
@@ -82,10 +89,11 @@ if (process.env.MONGODB_URI) {
   const db = require('./db');
   console.log('Using Local SQLite Database');
   dbAdapter = {
-    create: (id, title, content, owner) => new Promise((res, rej) => db.run('INSERT INTO documents (id, title, content, owner) VALUES (?, ?, ?, ?)', [id, title, content, owner], err => err ? rej(err) : res())),
-    get: (id) => new Promise((res, rej) => db.get('SELECT * FROM documents WHERE id = ?', [id], (err, row) => err ? rej(err) : res(row))),
+    create: (id, title, content, owner) => new Promise((res, rej) => db.run('INSERT INTO documents (id, title, content, owner, font_size) VALUES (?, ?, ?, ?, 18)', [id, title, content, owner], err => err ? rej(err) : res())),
+    get: (id) => new Promise((res, rej) => db.get('SELECT id, title, content, owner, font_size AS fontSize FROM documents WHERE id = ?', [id], (err, row) => err ? rej(err) : res(row))),
     updateTitle: (id, title) => new Promise((res, rej) => db.run('UPDATE documents SET title = ? WHERE id = ?', [title, id], err => err ? rej(err) : res())),
     updateContent: (id, content) => new Promise((res, rej) => db.run('UPDATE documents SET content = ? WHERE id = ?', [content, id], err => err ? rej(err) : res())),
+    updateFontSize: (id, fontSize) => new Promise((res, rej) => db.run('UPDATE documents SET font_size = ? WHERE id = ?', [fontSize, id], err => err ? rej(err) : res())),
     list: (owner) => new Promise((res, rej) => db.all('SELECT id, title FROM documents WHERE owner = ? OR (owner IS NULL AND ? = ?) ORDER BY rowid DESC', [owner, owner, process.env.ADMIN_EMAIL || 'dhiraj86@gmail.com'], (err, rows) => err ? rej(err) : res(rows))),
     delete: (id) => new Promise((res, rej) => db.run('DELETE FROM documents WHERE id = ?', [id], err => err ? rej(err) : res()))
   };
@@ -147,15 +155,24 @@ app.use((req, res) => {
 
 io.on('connection', (socket) => {
   socket.on('join-document', (id) => socket.join(id));
-  socket.on('edit-document', async ({ documentId, content, password }) => {
+  socket.on('edit-document', async ({ documentId, content, fontSize, password }) => {
     const email = Object.keys(ACCOUNTS).find(k => ACCOUNTS[k] === password);
     if (!email) return;
     try {
       const doc = await dbAdapter.get(documentId);
       if (!doc) return;
       if (!hasAccess(doc.owner, email)) return;
-      await dbAdapter.updateContent(documentId, content);
-      socket.to(documentId).emit('document-updated', { content });
+      
+      const updates = {};
+      if (content !== undefined) {
+        await dbAdapter.updateContent(documentId, content);
+        updates.content = content;
+      }
+      if (fontSize !== undefined) {
+        await dbAdapter.updateFontSize(documentId, fontSize);
+        updates.fontSize = fontSize;
+      }
+      socket.to(documentId).emit('document-updated', updates);
     } catch (err) { console.error(err); }
   });
 });

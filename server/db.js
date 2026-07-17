@@ -11,10 +11,14 @@ db.serialize(() => {
       title TEXT,
       content TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      owner TEXT
+      owner TEXT,
+      font_size INTEGER DEFAULT 18
     )
   `);
   db.run(`ALTER TABLE documents ADD COLUMN owner TEXT`, (err) => {
+    // Ignore error if column already exists
+  });
+  db.run(`ALTER TABLE documents ADD COLUMN font_size INTEGER DEFAULT 18`, (err) => {
     // Ignore error if column already exists
   });
 });

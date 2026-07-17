@@ -17,6 +17,7 @@ export default function Editor() {
   const [title, setTitle] = useState('');
   const [socket, setSocket] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [viewerFontSize, setViewerFontSize] = useState(18);
   const [saving, setSaving] = useState(false);
   const quillRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || '';
@@ -29,6 +30,7 @@ export default function Editor() {
         if (data.id) {
           setTitle(data.title);
           setContent(data.content);
+          setViewerFontSize(data.fontSize || 18);
         }
       });
 
@@ -43,6 +45,14 @@ export default function Editor() {
 
     return () => newSocket.close();
   }, [id]);
+
+  const handleFontSizeChange = (size) => {
+    setViewerFontSize(size);
+    if (socket) {
+      const password = localStorage.getItem('admin_password');
+      socket.emit('edit-document', { documentId: id, fontSize: size, password });
+    }
+  };
 
   const handleChange = (value) => {
     setContent(value);
@@ -91,6 +101,18 @@ export default function Editor() {
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ background: 'var(--card-bg)', padding: '8px 15px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Viewer Font Size:</span>
+            <select 
+              value={viewerFontSize} 
+              onChange={e => handleFontSizeChange(parseInt(e.target.value))}
+              style={{ background: 'rgba(15, 23, 42, 0.5)', color: 'white', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '2px 5px', fontSize: '0.9rem', outline: 'none', cursor: 'pointer' }}
+            >
+              {[12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 36, 40, 48].map(size => (
+                <option key={size} value={size}>{size}px</option>
+              ))}
+            </select>
+          </div>
           <div style={{ background: 'var(--card-bg)', padding: '8px 15px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Doc ID:</span>
             <span style={{ fontWeight: 'bold', fontFamily: 'monospace', letterSpacing: '1px' }}>{id}</span>
