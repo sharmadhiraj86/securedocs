@@ -6,8 +6,6 @@ function preprocessHtml(html) {
   if (!html) return '';
   // Replace non-breaking spaces with normal spaces
   let cleaned = html.replace(/&nbsp;/g, ' ');
-  // Strip font-size styles from style attributes to let container-level auto-scaling work
-  cleaned = cleaned.replace(/font-size\s*:\s*[^;"]+;?/gi, '');
   // Strip size attribute from font tags
   cleaned = cleaned.replace(/<font\s+[^>]*size="[^"]*"[^>]*>/gi, '<font>');
   return cleaned;
@@ -18,7 +16,6 @@ export default function Viewer() {
   const navigate = useNavigate();
   const [document, setDocument] = useState(null);
   const [error, setError] = useState('');
-  const [fontSize, setFontSize] = useState(16);
   
   // Permanent Render Cloud URL
   const serverUrl = 'https://securedocs-94jd.onrender.com';
@@ -64,45 +61,7 @@ export default function Viewer() {
     return () => socket.close();
   }, [id]);
 
-  useEffect(() => {
-    if (!document || !document.content) return;
 
-    const adjustFontSize = () => {
-      const el = window.document.getElementById('document-content-box');
-      if (!el) return;
-
-      let min = 4;   // Minimum readable/micro font size
-      let max = 32;  // Maximum comfortable font size
-      let optimal = min;
-
-      // Binary search for the perfect font size that fits without vertical overflow
-      for (let i = 0; i < 10; i++) {
-        const mid = (min + max) / 2;
-        el.style.fontSize = `${mid}px`;
-        
-        if (el.scrollHeight <= el.clientHeight) {
-          optimal = mid; // This size fits! Try a larger size to maximize legibility.
-          min = mid;
-        } else {
-          max = mid; // This size overflows, try a smaller size.
-        }
-      }
-
-      // Apply the optimal size
-      el.style.fontSize = `${optimal}px`;
-      setFontSize(optimal);
-    };
-
-    // Run layout adjustments immediately and after a tiny timeout to ensure DOM painting
-    adjustFontSize();
-    const timer = setTimeout(adjustFontSize, 50);
-
-    window.addEventListener('resize', adjustFontSize);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', adjustFontSize);
-    };
-  }, [document?.content]);
 
   if (error) {
     return (
@@ -157,11 +116,12 @@ export default function Viewer() {
         className="document-content" 
         style={{ 
           flex: 1,
-          overflow: 'hidden', 
+          overflowY: 'auto', 
           padding: '20px', 
           minHeight: 0, 
           boxSizing: 'border-box',
-          lineHeight: '1.4'
+          lineHeight: '1.6',
+          fontSize: '18px'
         }}
         dangerouslySetInnerHTML={{ __html: preprocessHtml(document.content) }}
       />

@@ -1,9 +1,14 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ReactQuill from 'react-quill-new';
+import ReactQuill, { Quill } from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { io } from 'socket.io-client';
 import { ArrowLeft, Share2, Save, Check } from 'lucide-react';
+
+// Register custom sizes with inline styles
+const Size = Quill.import('attributors/style/size');
+Size.whitelist = ['12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px', '48px'];
+Quill.register(Size, true);
 
 export default function Editor() {
   const { id } = useParams();
@@ -58,6 +63,7 @@ export default function Editor() {
 
   const modules = {
     toolbar: [
+      [{ 'size': ['12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px', '48px'] }],
       [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
       ['bold', 'italic', 'underline', 'strike'],
       [{ 'color': [] }, { 'background': [] }],
