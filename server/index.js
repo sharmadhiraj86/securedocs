@@ -18,18 +18,26 @@ app.use(express.static(path.join(__dirname, '../admin-web/dist')));
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'dhiraj86@gmail.com';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Ro@45';
+const ACCOUNTS = {
+  [process.env.ADMIN_EMAIL || 'dhiraj86@gmail.com']: process.env.ADMIN_PASSWORD || 'Ro@45',
+  'sonali21@gmail.com': 'Sd@21'
+};
+
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  if (authHeader === `Bearer ${ADMIN_PASSWORD}`) next();
-  else res.status(401).json({ error: 'Unauthorized' });
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    if (Object.values(ACCOUNTS).includes(token)) {
+      return next();
+    }
+  }
+  res.status(401).json({ error: 'Unauthorized' });
 };
 
 // Login Route
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
-  if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+  if (ACCOUNTS[email] && ACCOUNTS[email] === password) {
     res.json({ success: true });
   } else {
     res.status(401).json({ error: 'Invalid credentials' });
@@ -114,7 +122,7 @@ app.use((req, res) => {
 io.on('connection', (socket) => {
   socket.on('join-document', (id) => socket.join(id));
   socket.on('edit-document', async ({ documentId, content, password }) => {
-    if (password !== ADMIN_PASSWORD) return;
+    if (!Object.values(ACCOUNTS).includes(password)) return;
     try {
       await dbAdapter.updateContent(documentId, content);
       socket.to(documentId).emit('document-updated', { content });

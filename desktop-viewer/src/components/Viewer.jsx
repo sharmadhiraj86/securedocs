@@ -20,8 +20,8 @@ export default function Viewer() {
   const [error, setError] = useState('');
   const [fontSize, setFontSize] = useState(16);
   
-  // Hardcoded permanent URL (Ngrok Tunnel)
-  const serverUrl = 'https://tastiness-acclimate-case.ngrok-free.dev';
+  // Permanent Render Cloud URL
+  const serverUrl = 'https://securedocs-94jd.onrender.com';
 
   useEffect(() => {
     // Fetch initial document. Added Bypass-Tunnel-Reminder header to bypass localtunnel warning page!
