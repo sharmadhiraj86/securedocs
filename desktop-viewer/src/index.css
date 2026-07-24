@@ -22,14 +22,24 @@ body {
 }
 
 .document-content {
-  background-color: white;
-  color: black;
+  background-color: var(--card-bg);
+  color: var(--text-color);
   padding: 40px;
   border-radius: 8px;
+  border: 1px solid var(--border-color);
   box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
+}
+
+/* Failsafe to prevent black text styling from becoming unreadable in dark mode */
+.document-content span[style*="color: rgb(0, 0, 0)"],
+.document-content span[style*="color: #000000"],
+.document-content span[style*="color: #000"],
+.document-content font[color="#000000"],
+.document-content font[color="#000"] {
+  color: var(--text-color) !important;
 }
 
 .document-content * {
