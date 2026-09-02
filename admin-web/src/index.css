@@ -23,22 +23,85 @@ body {
 }
 
 .ql-toolbar.ql-snow {
-  background-color: #cbd5e1;
+  background-color: #1e293b !important;
   border-radius: 8px 8px 0 0;
-  border: none !important;
+  border: 1px solid var(--border-color) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.ql-snow .ql-stroke {
+  stroke: #94a3b8 !important;
+}
+
+.ql-snow .ql-fill {
+  fill: #94a3b8 !important;
+}
+
+.ql-snow .ql-picker {
+  color: #94a3b8 !important;
+}
+
+.ql-snow .ql-picker-label {
+  color: #94a3b8 !important;
+}
+
+.ql-snow .ql-picker-label:hover {
+  color: #f8fafc !important;
+}
+
+.ql-snow .ql-picker-label:hover .ql-stroke {
+  stroke: #f8fafc !important;
+}
+
+.ql-snow .ql-picker-options {
+  background-color: #1e293b !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-color) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 6px !important;
+  padding: 5px !important;
+}
+
+.ql-snow .ql-picker-item {
+  color: #94a3b8 !important;
+}
+
+.ql-snow .ql-picker-item:hover {
+  color: #60a5fa !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.ql-snow button:hover .ql-stroke,
+.ql-snow .ql-picker-label.ql-active .ql-stroke,
+.ql-snow .ql-picker-item.ql-selected .ql-stroke {
+  stroke: #60a5fa !important;
+}
+
+.ql-snow button:hover .ql-fill,
+.ql-snow .ql-picker-label.ql-active .ql-fill,
+.ql-snow .ql-picker-item.ql-selected .ql-fill {
+  fill: #60a5fa !important;
 }
 
 .ql-container.ql-snow {
-  background-color: white;
-  color: black;
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
   border-radius: 0 0 8px 8px;
   min-height: 60vh;
   font-size: 16px;
-  border: none !important;
+  border: 1px solid var(--border-color) !important;
+  border-top: none !important;
 }
 
 .ql-editor {
   min-height: 60vh;
+  color: #f8fafc !important;
+  caret-color: #60a5fa;
+}
+
+.ql-editor.ql-blank::before {
+  color: #64748b !important;
+  font-style: normal;
 }
 
 /* Custom font size labels in Quill toolbar */
